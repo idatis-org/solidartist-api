@@ -148,4 +148,41 @@ router.post('/new', async (req, res) => {
     })
 })
 
+//editando
+router.post('/edit', (req, res) => {
+    //Se recojen los datos enviados en el body
+    const { id, idUser } = req.body;
+
+    //Se monta un objeto con los datos que queremos que se actualizen en bd, en este caso el current_owner
+    let obra = {
+        id_current_owner: idUser
+    }
+    //Booleano para saber si es la misma obra que se esta intentanto comprar
+    let flag = false;
+
+    //Se busca la pieza y se le pasa el objeto creado para que actualice el campo que tiene informado
+    UserPiece.findOne({ where: { id_piece: id } })
+        .then(userPiece => {
+            //Si se esta intentando comprar una pieza que no es suya, se actualiza y se compra(mas adelante se mirara que haya dinero y demas)
+            if (userPiece.dataValues.id_creator != idUser) {
+                userPiece.update(obra);
+            } else {
+                //Si intenta comprar una obra que es suya hacemos saltar el catch con el reject()
+                flag = true;
+                reject();
+            }
+        })
+        .then(result => res.status(200).json({ ok: true, data: result }))
+        .catch(err => {
+            //Para controlar el error, con el flag podemos saber si es error de BD, servidor o que esta intentando comprar su propia obra, si es asi ponemos un tetxo predeterminado y un codigo de error
+            if (flag) {
+                err = "No puedes comprar tu propia obra pillín ;)";
+                estatus = 403;
+            } else {
+                estatus = 400;
+            }
+            return res.status(estatus).json({ ok: false, data: err })
+        })
+})
+//fin editando
 module.exports = router;
