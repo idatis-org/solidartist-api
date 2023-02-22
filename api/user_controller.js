@@ -146,6 +146,7 @@ router.post('/login', (req, res) => {
     const response = {};
     const { username, password } = req.body;
     console.log(username, password)
+    let flag = false
 
     if (!username || !password) {
 
@@ -154,28 +155,50 @@ router.post('/login', (req, res) => {
 
     User.findOne({ where: { username } })
         .then((user) => {
-
             if (user && bcrypt.compareSync(password, user.password)) {
-                return user;
+                if (user && !user.active) {
+                    return user;
+                } else {
+                    flag = true
+                    throw "Reported user";
+                }
             } else {
                 throw "username or password invalids";
             }
-        })
-        .then(usuari => {
-            response.token = jsonwebtoken.sign(
-                {
-                    expiredAt: new Date().getTime() + expiredAfter,
-                    username: usuari.username,
-                    alias: usuari.alias,
-                    id: usuari.id,
-                    role: usuari.role
-                },
-                secretKey
-            );
-            response.ok = true;
-            res.json(response)
-        })
-        .catch(err => res.status(400).json({ ok: false, msg: err }))
+        }
+
+            /*if (user && bcrypt.compareSync(password, user.password)) {
+                return user;
+            } else {
+                throw "username or password invalids";
+            }*/
+        )
+    .then(usuari => {
+        response.token = jsonwebtoken.sign(
+            {
+                expiredAt: new Date().getTime() + expiredAfter,
+                username: usuari.username,
+                alias: usuari.alias,
+                id: usuari.id,
+                role: usuari.role
+            },
+            secretKey
+        );
+        response.ok = true;
+        res.json(response)
+    })
+    // .catch(err => res.status(400).json({ ok: false, msg: err }))
+    .catch(err => {
+        if (flag) {
+            msg = "Reported user, please contact us";
+            sts = 403;
+        } else {
+            sts = 400;
+        }
+
+        res.status(sts).json({ ok: false, msg: err })
+    })
+
 });
 
 module.exports = router;
