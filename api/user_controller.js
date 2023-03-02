@@ -167,11 +167,6 @@ router.post('/login', (req, res) => {
             }
         }
 
-            /*if (user && bcrypt.compareSync(password, user.password)) {
-                return user;
-            } else {
-                throw "username or password invalids";
-            }*/
         )
     .then(usuari => {
         response.token = jsonwebtoken.sign(
@@ -190,7 +185,6 @@ router.post('/login', (req, res) => {
     // .catch(err => res.status(400).json({ ok: false, msg: err }))
     .catch(err => {
         if (flag) {
-            msg = "Reported user, please contact us";
             sts = 403;
         } else {
             sts = 400;
