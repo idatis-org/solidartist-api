@@ -148,7 +148,7 @@ router.post('/new', async (req, res) => {
     })
 })
 
-//editando
+//CHANGE OF OWNER WHEN PURCHASING AN ART
 router.post('/edit', (req, res) => {
     //Se recojen los datos enviados en el body
     const { id, idUser } = req.body;
@@ -184,5 +184,39 @@ router.post('/edit', (req, res) => {
             return res.status(estatus).json({ ok: false, data: err })
         })
 })
-//fin editando
+
+
+// DELETE ART BY ID
+
+router.delete('/piece/:id', async (req, res) => {
+    try {
+        const {
+            id
+        } = req.params;
+        const artPiece = await ArtPiece.findOne({
+            where: {
+                id
+            }
+        });
+        if (!artPiece) {
+            return res.status(404).json({
+                ok: false,
+                data: 'No se encontró el arte'
+            });
+        }
+        await artPiece.destroy();
+        res.status(200).json({
+            ok: true,
+            data: 'El arte fue eliminado correctamente'
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({
+            ok: false,
+            data: error.message
+        });
+    }
+});
+
+
 module.exports = router;
